@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- FIX IMMAGINI: Questo meta tag impedisce l'invio del Referrer, sbloccando spesso le immagini protette -->
+    <meta name="referrer" content="no-referrer">
     <title>Stream.Virtual</title>
     <meta name="description" content="Il tuo assistente streaming personale.">
     
@@ -30,6 +32,8 @@
             --accent: #0A84FF;
             --accent-director: #f43f5e;
             --accent-trivia: #F59E0B;
+            --accent-snack: #10b981; /* Verde smeraldo */
+            --accent-quote: #8b5cf6; /* Viola */
             --card-shadow: 0 4px 20px rgba(0,0,0,0.5);
             
             --nav-height: 84px;
@@ -116,12 +120,15 @@
             cursor: pointer;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--border);
+            background: #222; /* Fallback bg */
         }
         .hero-bg {
             position: absolute; inset: 0;
             background-size: cover; background-position: center;
             transition: transform 10s ease;
+            opacity: 0; transition: opacity 0.5s ease;
         }
+        .hero-bg.loaded { opacity: 1; }
         .hero-card:active .hero-bg { transform: scale(1.05); }
         .hero-gradient {
             position: absolute; inset: 0;
@@ -149,7 +156,7 @@
         }
         @media (max-width: 380px) { .grid { grid-template-columns: 1fr 1fr; gap: 10px; } }
 
-        .card { cursor: pointer; }
+        .card { cursor: pointer; position: relative; }
         .card:active { opacity: 0.8; }
         
         .poster {
@@ -162,15 +169,23 @@
             box-shadow: var(--card-shadow);
         }
 
-        .poster img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; }
-        .poster img.loaded { opacity: 1; }
+        /* Gestione Sovrapposizione Immagini */
+        .poster-img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            opacity: 0; transition: opacity 0.5s; 
+            position: absolute; top: 0; left: 0; z-index: 2;
+        }
+        .poster-img.loaded { opacity: 1; }
 
         .poster-fallback {
-            position: absolute; inset: 0;
+            width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center; text-align: center;
             padding: 10px; font-weight: 700; color: #fff;
             background: linear-gradient(135deg, #333, #555);
-            font-size: 14px; z-index: 0;
+            font-size: 14px; 
+            position: absolute; top: 0; left: 0; z-index: 1; /* Sta sotto l'immagine */
+            text-transform: uppercase;
+            line-height: 1.3;
         }
 
         .card-meta { margin-top: 8px; }
@@ -234,12 +249,14 @@
             border: 1px solid transparent;
         }
 
+        /* Card: Director Review */
         .ai-card-director {
             background: rgba(244, 63, 94, 0.1);
             border-color: rgba(244, 63, 94, 0.2);
         }
         .ai-title-director { color: var(--accent-director); }
 
+        /* Card: Trivia Quiz */
         .ai-card-trivia {
             background: rgba(245, 158, 11, 0.1);
             border-color: rgba(245, 158, 11, 0.2);
@@ -247,6 +264,21 @@
         }
         .ai-card-trivia:active { transform: scale(0.98); }
         .ai-title-trivia { color: var(--accent-trivia); }
+
+        /* Card: Snack Pairing */
+        .ai-card-snack {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .ai-title-snack { color: var(--accent-snack); }
+
+        /* Card: Quote */
+        .ai-card-quote {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+            font-style: italic;
+        }
+        .ai-title-quote { color: var(--accent-quote); }
         
         .ai-title { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
         .ai-text { font-size: 15px; line-height: 1.6; color: var(--text-main); }
@@ -297,8 +329,12 @@
 <div id="homeView">
     <div class="hero-section">
         <div class="hero-card" id="dailyHero" onclick="openDaily()">
+            <!-- Immagine di sfondo -->
             <div class="hero-bg" id="dailyBg"></div>
             <div class="hero-gradient"></div>
+            <!-- Fallback se l'immagine non carica -->
+            <div class="poster-fallback" id="dailyFallback" style="z-index: 1; display:none; font-size:24px;"></div>
+            
             <div class="hero-content">
                 <div class="hero-badge">Scelto oggi</div>
                 <h2 id="dailyTitle" style="margin:0; font-size:24px; font-weight:800; line-height:1.2;">Caricamento...</h2>
@@ -348,6 +384,28 @@
                 </div>
             </div>
 
+            <!-- Feature 3: Snack Pairing (NEW) -->
+            <div class="ai-card ai-card-snack">
+                <div class="ai-title ai-title-snack">
+                    <span class="material-symbols-rounded" style="font-size:16px;">restaurant</span>
+                    Il Sommelier ✨
+                </div>
+                <div id="aiSnack" class="ai-text">
+                    <span class="spinner"></span> Preparo i popcorn...
+                </div>
+            </div>
+
+            <!-- Feature 4: Quote (NEW) -->
+            <div class="ai-card ai-card-quote">
+                <div class="ai-title ai-title-quote">
+                    <span class="material-symbols-rounded" style="font-size:16px;">format_quote</span>
+                    Citazione Iconica
+                </div>
+                <div id="aiQuote" class="ai-text">
+                    <span class="spinner"></span> Ricerca negli archivi...
+                </div>
+            </div>
+
             <!-- Feature 2: Trivia Quiz -->
             <div class="ai-card ai-card-trivia" id="triviaCard" onclick="revealTrivia()">
                 <div class="ai-title ai-title-trivia">
@@ -389,46 +447,56 @@
         document.getElementById('themeIcon').innerText = theme === 'dark' ? 'light_mode' : 'dark_mode';
     }
 
-    // --- HELPER PER CHIAMATE AI (SERVER-SIDE ONLY) ---
+    // --- CONFIGURAZIONE AI ---
+    // Fallback key per l'anteprima locale.
+    const FALLBACK_KEY = "AIzaSyCAc2pVaU6sDh-9pKRSYIA4AJm1MwhuorM";
+
+    // --- HELPER PER CHIAMATE AI (IBRIDO) ---
     async function askAI(prompt) {
         try {
-            // Chiama la Serverless Function Vercel (/api/ask-ai)
-            // La chiave API è gestita lato server, quindi è invisibile nel client
+            // 1. Prova Backend Sicuro (Vercel)
             const response = await fetch('/api/ask-ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: prompt })
             });
             
-            if (!response.ok) {
-                console.error("Errore server Vercel:", response.statusText);
-                return null;
-            }
-            
+            if (!response.ok) throw new Error('Backend non disponibile, uso fallback');
             const data = await response.json();
             return data;
 
         } catch (e) {
-            // Questo errore apparirà se stai testando in locale senza il backend attivo
-            console.warn("Chiamata AI fallita (Backend non raggiungibile in locale). Deploya su Vercel per testare.");
-            return null;
+            console.warn("Backend non raggiungibile (anteprima). Uso fallback diretto.");
+            // 2. Fallback Locale (Anteprima)
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${FALLBACK_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                return await response.json();
+            } catch (err) {
+                console.error("Errore totale AI:", err);
+                return null;
+            }
         }
     }
 
     // --- DATA & APP ---
+    // Link immagini aggiornati a Wikipedia/TMDB stabili
     const initialDB = [
-        { id: 1, title: "Breaking Bad", year: 2008, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" },
-        { id: 2, title: "Stranger Things", year: 2016, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg" },
-        { id: 3, title: "The Mandalorian", year: 2019, platform: "Disney+", poster: "https://image.tmdb.org/t/p/w500/eU1i6eHXlzMOlEq0ku1Rzq7Y4wA.jpg" },
-        { id: 4, title: "The Boys", year: 2019, platform: "Prime", poster: "https://image.tmdb.org/t/p/w500/z4x0Bp48ar3Mda8KiPD1n6524O.jpg" },
-        { id: 5, title: "Oppenheimer", year: 2023, platform: "Prime", poster: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
-        { id: 6, title: "Succession", year: 2018, platform: "HBO", poster: "https://image.tmdb.org/t/p/w500/7T5xXfTlPjW8U9j1wRX4qEISMUK.jpg" },
-        { id: 7, title: "The Bear", year: 2022, platform: "Disney+", poster: "https://image.tmdb.org/t/p/w500/n3dsWOm9kadFm9G1M7XFq8pI4Z.jpg" },
-        { id: 8, title: "One Piece", year: 2023, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/rQGBjWNveedmF8KEatdce053WMO.jpg" },
-        { id: 9, title: "Spider-Man: Across the Spider-Verse", year: 2023, platform: "Prime", poster: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" },
-        { id: 10, title: "Wednesday", year: 2022, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/9PFonBhy4cQy7Jz20NpMygczOkv.jpg" },
-        { id: 11, title: "The Last of Us", year: 2023, platform: "HBO", poster: "https://image.tmdb.org/t/p/w500/uKvVjHNqBPlV1WAWEJyDT0rA1pw.jpg" },
-        { id: 12, title: "Avatar: The Way of Water", year: 2022, platform: "Disney+", poster: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg" }
+        { id: 1, title: "Breaking Bad", year: 2008, platform: "Netflix", poster: "https://upload.wikimedia.org/wikipedia/en/0/03/Breaking_Bad_Season_1_DVD.jpg" },
+        { id: 2, title: "Stranger Things", year: 2016, platform: "Netflix", poster: "https://upload.wikimedia.org/wikipedia/en/3/38/Stranger_Things_season_4_poster.jpg" },
+        { id: 3, title: "The Mandalorian", year: 2019, platform: "Disney+", poster: "https://upload.wikimedia.org/wikipedia/en/3/30/The_Mandalorian_season_3_poster.jpg" },
+        { id: 4, title: "The Boys", year: 2019, platform: "Prime", poster: "https://upload.wikimedia.org/wikipedia/en/5/52/The_Boys_season_4_poster.jpg" },
+        { id: 5, title: "Oppenheimer", year: 2023, platform: "Prime", poster: "https://upload.wikimedia.org/wikipedia/en/4/4a/Oppenheimer_%28film%29.jpg" },
+        { id: 6, title: "Succession", year: 2018, platform: "HBO", poster: "https://upload.wikimedia.org/wikipedia/en/c/c5/Succession_Season_1.jpg" },
+        { id: 7, title: "The Bear", year: 2022, platform: "Disney+", poster: "https://upload.wikimedia.org/wikipedia/en/7/7d/The_Bear_season_1_poster.jpg" },
+        { id: 8, title: "One Piece", year: 2023, platform: "Netflix", poster: "https://upload.wikimedia.org/wikipedia/en/9/90/One_Piece%2C_season_1_poster.jpg" },
+        { id: 9, title: "Spider-Man", year: 2023, platform: "Prime", poster: "https://upload.wikimedia.org/wikipedia/en/b/b4/Spider-Man-_Across_the_Spider-Verse_poster.jpg" },
+        { id: 10, title: "Wednesday", year: 2022, platform: "Netflix", poster: "https://upload.wikimedia.org/wikipedia/en/2/22/Wednesday_poster.jpg" },
+        { id: 11, title: "The Last of Us", year: 2023, platform: "HBO", poster: "https://upload.wikimedia.org/wikipedia/en/4/46/The_Last_of_Us_season_1_poster.jpg" },
+        { id: 12, title: "Avatar 2", year: 2022, platform: "Disney+", poster: "https://upload.wikimedia.org/wikipedia/en/5/54/Avatar_The_Way_of_Water_poster.jpg" }
     ];
 
     let currentDB = [...initialDB];
@@ -443,12 +511,18 @@
             card.className = 'card';
             card.onclick = () => openModal(item);
             
-            const imgHTML = item.poster 
-                ? `<img src="${item.poster}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.opacity='0'">` 
-                : '';
-            
+            // Colore fallback basato su ID
             const hue = (item.id * 60) % 360;
-            const fallbackHTML = `<div class="poster-fallback" style="background:hsl(${hue}, 40%, 20%)">${item.title}</div>`;
+            const fallbackHTML = `
+                <div class="poster-fallback" style="background:hsl(${hue}, 40%, 20%)">
+                    ${item.title}
+                </div>
+            `;
+
+            // Immagine: se errore, si nasconde lasciando vedere il fallback sotto
+            const imgHTML = item.poster 
+                ? `<img src="${item.poster}" class="poster-img" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.opacity='0'">` 
+                : '';
 
             card.innerHTML = `
                 <div class="poster">
@@ -469,7 +543,23 @@
         const seed = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
         const dailyMovie = initialDB[seed % initialDB.length];
 
-        document.getElementById('dailyBg').style.backgroundImage = `url('${dailyMovie.poster}')`;
+        const heroBg = document.getElementById('dailyBg');
+        const heroFallback = document.getElementById('dailyFallback');
+
+        // Tenta di caricare immagine
+        const img = new Image();
+        img.src = dailyMovie.poster;
+        img.onload = () => {
+            heroBg.style.backgroundImage = `url('${dailyMovie.poster}')`;
+            heroBg.classList.add('loaded');
+        };
+        img.onerror = () => {
+            // Se fallisce, mostra fallback colorato
+            heroFallback.style.display = 'flex';
+            heroFallback.style.background = `hsl(${(dailyMovie.id * 60) % 360}, 40%, 20%)`;
+            heroFallback.innerText = dailyMovie.title;
+        };
+
         document.getElementById('dailyTitle').innerText = dailyMovie.title;
         document.getElementById('dailyMeta').innerText = `${dailyMovie.year} • ${dailyMovie.platform}`;
         
@@ -495,7 +585,7 @@
             Sei un esperto di cinema. L'utente scrive: "${query}".
             Se è un titolo specifico, restituisci quel film.
             Se è un mood, un genere o una descrizione (es. "film tristi", "qualcosa tipo Matrix"), SUGGERISCI il miglior film che corrisponde.
-            Rispondi SOLO JSON: {"title": "Titolo", "year": "Anno", "platform": "Piattaforma (Netflix/Prime/Disney/ecc)", "poster": "URL poster TMDB o vuoto"}
+            Rispondi SOLO JSON: {"title": "Titolo", "year": "Anno", "platform": "Piattaforma (Netflix/Prime/Disney/ecc)", "poster": "URL poster Wikipedia/TMDB sicuro o vuoto"}
         `;
         
         const data = await askAI(prompt);
@@ -511,8 +601,7 @@
                 grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px;">Nessun risultato trovato.</div>';
             }
         } else {
-            // Fallback se backend fallisce (es. in local preview)
-            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px;">Funzionalità disponibile dopo il deploy.</div>';
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px;">Il server non risponde.</div>';
             setTimeout(() => renderGrid(initialDB), 2000);
         }
     }
@@ -525,6 +614,8 @@
         
         // Reset UI
         document.getElementById('aiReview').innerHTML = '<span class="spinner"></span> Analisi in corso...';
+        document.getElementById('aiSnack').innerHTML = '<span class="spinner"></span> Preparo i popcorn...';
+        document.getElementById('aiQuote').innerHTML = '<span class="spinner"></span> Ricerca negli archivi...';
         document.getElementById('triviaQuestion').innerHTML = '<span class="spinner"></span> Generazione domanda...';
         document.getElementById('triviaAnswer').innerText = '';
         document.getElementById('triviaCard').classList.remove('trivia-revealed');
@@ -535,11 +626,19 @@
         // Feature 1: Director Review
         const promptReview = `Analizza "${item.title}". Scrivi una recensione tecnica ma breve (max 30 parole) come se fossi un regista esperto.`;
         askAI(promptReview).then(data => {
-            if(data?.candidates) {
-                document.getElementById('aiReview').innerText = data.candidates[0].content.parts[0].text;
-            } else {
-                document.getElementById('aiReview').innerText = "Recensione disponibile online.";
-            }
+            if(data?.candidates) document.getElementById('aiReview').innerText = data.candidates[0].content.parts[0].text;
+        });
+
+        // Feature 3: Snack Pairing (NEW)
+        const promptSnack = `Consiglia uno snack e una bevanda ideali per il film "${item.title}". Rispondi con emoji e in max 15 parole.`;
+        askAI(promptSnack).then(data => {
+             if(data?.candidates) document.getElementById('aiSnack').innerText = data.candidates[0].content.parts[0].text;
+        });
+
+        // Feature 4: Quote (NEW)
+        const promptQuote = `Scrivi una citazione iconica o famosa del film "${item.title}". Se non ne esistono, inventane una plausibile nello stile del film. Solo la citazione.`;
+        askAI(promptQuote).then(data => {
+             if(data?.candidates) document.getElementById('aiQuote').innerText = `"${data.candidates[0].content.parts[0].text.replace(/"/g, '')}"`;
         });
 
         // Feature 2: Generazione Trivia
