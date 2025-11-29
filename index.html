@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Stream.Virtual</title>
+    <meta name="description" content="Il tuo assistente streaming personale.">
+    
+    <!-- PWA Settings -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <style>
+        :root {
+            /* Dark Mode (Default) */
+            --bg-body: #000000;
+            --bg-surface: #121212;
+            --bg-glass: rgba(18, 18, 18, 0.85);
+            --text-main: #ffffff;
+            --text-sec: #8e8e93;
+            --border: #2c2c2e;
+            --accent: #0A84FF; /* iOS Blue */
+            --accent-director: #f43f5e; /* Rosso Regista */
+            --danger: #FF453A;
+            --success: #32D74B;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            
+            --nav-height: 84px;
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        [data-theme="light"] {
+            /* Light Mode Overrides */
+            --bg-body: #F2F2F7; /* iOS System Gray 6 */
+            --bg-surface: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.85);
+            --text-main: #000000;
+            --text-sec: #6e6e73;
+            --border: #d1d1d6;
+            --accent: #007AFF;
+            --card-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: calc(var(--nav-height) + var(--safe-bottom));
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- Header --- */
+        header {
+            position: sticky; top: 0; z-index: 90;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding-top: env(safe-area-inset-top, 10px);
+            transition: border-color 0.3s;
+        }
+
+        .header-content {
+            padding: 10px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .app-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .app-title span { color: var(--accent-director); }
+
+        .btn-theme {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+
+        /* --- Search Area --- */
+        .search-container { padding: 0 20px 16px; }
+        .search-bar {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex; align-items: center;
+            padding: 0 12px;
+            height: 44px;
+            transition: 0.3s;
+        }
+        .search-bar:focus-within { border-color: var(--accent); }
+        
+        .search-input {
+            border: none; background: transparent;
+            flex: 1; height: 100%;
+            color: var(--text-main); font-size: 16px;
+            margin-left: 8px; outline: none;
+        }
+
+        /* --- Hero Card --- */
+        .hero-section { padding: 20px; }
+        .hero-card {
+            height: 240px;
+            border-radius: 20px;
+            position: relative; overflow: hidden;
+            display: flex; align-items: flex-end;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+        }
+        .hero-bg {
+            position: absolute; inset: 0;
+            background-size: cover; background-position: center;
+            transition: transform 10s ease;
+        }
+        .hero-card:active .hero-bg { transform: scale(1.05); }
+        .hero-gradient {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);
+        }
+        .hero-content {
+            position: relative; z-index: 2; padding: 20px; width: 100%; color: white;
+        }
+        .hero-badge {
+            background: var(--accent-director); color: white;
+            font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 100px;
+            display: inline-block; margin-bottom: 8px; text-transform: uppercase;
+        }
+
+        /* --- Grid Layout --- */
+        .section-header {
+            padding: 10px 20px;
+            font-size: 19px; font-weight: 700;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px; padding: 0 20px;
+        }
+        @media (max-width: 380px) { .grid { grid-template-columns: 1fr 1fr; gap: 10px; } }
+
+        .card { cursor: pointer; }
+        .card:active { opacity: 0.8; }
+        
+        .poster {
+            aspect-ratio: 2/3;
+            background: var(--bg-surface);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+            box-shadow: var(--card-shadow);
+        }
+
+        .poster img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; }
+        .poster img.loaded { opacity: 1; }
+
+        .poster-fallback {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            padding: 10px; font-weight: 700; color: #fff;
+            background: linear-gradient(135deg, #333, #555);
+            font-size: 14px; z-index: 0;
+        }
+
+        .card-meta { margin-top: 8px; }
+        .card-title { font-size: 15px; font-weight: 600; line-height: 1.2; margin-bottom: 2px; color: var(--text-main); }
+        .card-sub { font-size: 13px; color: var(--text-sec); }
+
+        /* --- Bottom Navigation --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            height: calc(60px + var(--safe-bottom));
+            display: flex; justify-content: space-around;
+            padding-bottom: var(--safe-bottom);
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-sec); text-decoration: none; font-size: 10px; font-weight: 500;
+            background: none; border: none; cursor: pointer;
+        }
+        .nav-item.active { color: var(--accent); }
+        .nav-item span { font-size: 24px; margin-bottom: 4px; }
+
+        /* --- Modal --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 200; opacity: 0; visibility: hidden; transition: 0.3s;
+            display: flex; align-items: flex-end; justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+
+        .sheet {
+            background: var(--bg-surface); width: 100%; max-width: 600px;
+            max-height: 90vh; overflow-y: auto;
+            border-radius: 24px 24px 0 0;
+            transform: translateY(100%); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+        }
+        .modal-overlay.open .sheet { transform: translateY(0); }
+        @media(min-width: 600px) { .sheet { border-radius: 24px; margin-bottom: 20px; } }
+
+        .sheet-handle {
+            width: 40px; height: 5px; background: var(--border);
+            border-radius: 10px; margin: 12px auto;
+        }
+
+        .sheet-content { padding: 0 24px 100px; }
+        
+        .info-header h2 { font-size: 28px; font-weight: 800; margin: 0; line-height: 1.1; color: var(--text-main); }
+        .info-header p { color: var(--text-sec); margin: 6px 0 20px; font-size: 15px; }
+
+        .ai-card {
+            background: rgba(244, 63, 94, 0.1);
+            border-radius: 16px; padding: 20px; margin-bottom: 20px;
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+        
+        .ai-title { color: var(--accent-director); font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .ai-text { font-size: 15px; line-height: 1.6; color: var(--text-main); }
+
+        .btn-action {
+            display: block; width: 100%; padding: 16px;
+            background: var(--text-main); color: var(--bg-body);
+            text-align: center; border-radius: 14px; font-weight: 700;
+            text-decoration: none; font-size: 16px; margin-top: 10px;
+        }
+
+        /* Loader */
+        .spinner {
+            width: 16px; height: 16px; border: 2px solid var(--text-sec);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 0.8s infinite linear; display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <div class="app-title">Stream<span>.Virtual</span></div>
+        <button class="btn-theme" onclick="toggleTheme()" aria-label="Cambia tema">
+            <span class="material-symbols-rounded" id="themeIcon">dark_mode</span>
+        </button>
+    </div>
+    <div class="search-container">
+        <div class="search-bar">
+            <span class="material-symbols-rounded" style="color: var(--text-sec);">search</span>
+            <input type="text" class="search-input" id="searchInput" placeholder="Cerca film o serie..." onkeypress="if(event.key === 'Enter') performSearch()">
+        </div>
+    </div>
+</header>
+
+<div id="homeView">
+    <div class="hero-section">
+        <div class="hero-card" id="dailyHero" onclick="openDaily()">
+            <div class="hero-bg" id="dailyBg"></div>
+            <div class="hero-gradient"></div>
+            <div class="hero-content">
+                <div class="hero-badge">Scelto oggi</div>
+                <h2 id="dailyTitle" style="margin:0; font-size:24px; font-weight:800; line-height:1.2;">Caricamento...</h2>
+                <div id="dailyMeta" style="font-size:14px; opacity:0.8; margin-top:4px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header">Popolari</div>
+    <div class="grid" id="mainGrid"></div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="scrollToTop()">
+        <span class="material-symbols-rounded">home</span>
+        Home
+    </button>
+    <button class="nav-item" onclick="document.getElementById('searchInput').focus()">
+        <span class="material-symbols-rounded">search</span>
+        Cerca
+    </button>
+    <button class="nav-item" onclick="imFeelingLucky()">
+        <span class="material-symbols-rounded" style="color: var(--accent-director);">videocam</span>
+        Fortunato
+    </button>
+</nav>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target === this) closeModal()">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-content">
+            <div class="info-header">
+                <h2 id="modalTitle">Titolo</h2>
+                <p id="modalInfo">Anno • Piattaforma</p>
+            </div>
+
+            <div class="ai-card">
+                <div class="ai-title">
+                    <span class="material-symbols-rounded" style="font-size:16px;">psychology</span>
+                    L'occhio del Regista
+                </div>
+                <div id="aiReview" class="ai-text">
+                    <span class="spinner"></span> Analisi in corso...
+                </div>
+            </div>
+
+            <a href="#" id="modalLink" target="_blank" class="btn-action">
+                Guarda in Streaming
+            </a>
+            <div style="text-align:center; margin-top:12px; font-size:12px; color:var(--text-sec);">
+                Verrai reindirizzato alla ricerca ufficiale
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // --- THEME LOGIC ---
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    window.toggleTheme = function() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const newTheme = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+        document.getElementById('themeIcon').innerText = theme === 'dark' ? 'light_mode' : 'dark_mode';
+    }
+
+    // --- HELPER PER CHIAMATE AI (BACKEND SICURO) ---
+    async function askAI(prompt) {
+        try {
+            // Chiama la Serverless Function creata in api/ask-ai.js
+            // In questo modo la chiave API rimane sicura sul server
+            const response = await fetch('/api/ask-ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: prompt })
+            });
+            
+            if (!response.ok) throw new Error('Errore server');
+            
+            const data = await response.json();
+            return data;
+        } catch (e) {
+            console.error("Errore chiamata AI:", e);
+            return null;
+        }
+    }
+
+    // --- DATA & APP ---
+    const initialDB = [
+        { id: 1, title: "Breaking Bad", year: 2008, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg" },
+        { id: 2, title: "Stranger Things", year: 2016, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg" },
+        { id: 3, title: "The Mandalorian", year: 2019, platform: "Disney+", poster: "https://image.tmdb.org/t/p/w500/eU1i6eHXlzMOlEq0ku1Rzq7Y4wA.jpg" },
+        { id: 4, title: "The Boys", year: 2019, platform: "Prime", poster: "https://image.tmdb.org/t/p/w500/z4x0Bp48ar3Mda8KiPD1n6524O.jpg" },
+        { id: 5, title: "Oppenheimer", year: 2023, platform: "Prime", poster: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg" },
+        { id: 6, title: "Succession", year: 2018, platform: "HBO", poster: "https://image.tmdb.org/t/p/w500/7T5xXfTlPjW8U9j1wRX4qEISMUK.jpg" },
+        { id: 7, title: "The Bear", year: 2022, platform: "Disney+", poster: "https://image.tmdb.org/t/p/w500/n3dsWOm9kadFm9G1M7XFq8pI4Z.jpg" },
+        { id: 8, title: "One Piece", year: 2023, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/rQGBjWNveedmF8KEatdce053WMO.jpg" },
+        { id: 9, title: "Spider-Man: Across the Spider-Verse", year: 2023, platform: "Prime", poster: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" },
+        { id: 10, title: "Wednesday", year: 2022, platform: "Netflix", poster: "https://image.tmdb.org/t/p/w500/9PFonBhy4cQy7Jz20NpMygczOkv.jpg" },
+        { id: 11, title: "The Last of Us", year: 2023, platform: "HBO", poster: "https://image.tmdb.org/t/p/w500/uKvVjHNqBPlV1WAWEJyDT0rA1pw.jpg" },
+        { id: 12, title: "Avatar: The Way of Water", year: 2022, platform: "Disney+", poster: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg" }
+    ];
+
+    let currentDB = [...initialDB];
+    const grid = document.getElementById('mainGrid');
+    const modal = document.getElementById('modal');
+
+    // --- RENDER ---
+    function renderGrid(list) {
+        grid.innerHTML = '';
+        list.forEach((item) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => openModal(item);
+            
+            const imgHTML = item.poster 
+                ? `<img src="${item.poster}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.opacity='0'">` 
+                : '';
+            
+            const hue = (item.id * 60) % 360;
+            const fallbackHTML = `<div class="poster-fallback" style="background:hsl(${hue}, 40%, 20%)">${item.title}</div>`;
+
+            card.innerHTML = `
+                <div class="poster">
+                    ${fallbackHTML}
+                    ${imgHTML}
+                </div>
+                <div class="card-meta">
+                    <div class="card-title">${item.title}</div>
+                    <div class="card-sub">${item.year} • ${item.platform}</div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // --- DAILY PICK ---
+    function setupDailyPick() {
+        const seed = Math.floor(new Date().getTime() / (1000 * 60 * 60 * 24));
+        const dailyMovie = initialDB[seed % initialDB.length];
+
+        document.getElementById('dailyBg').style.backgroundImage = `url('${dailyMovie.poster}')`;
+        document.getElementById('dailyTitle').innerText = dailyMovie.title;
+        document.getElementById('dailyMeta').innerText = `${dailyMovie.year} • ${dailyMovie.platform}`;
+        
+        window.dailyMovieData = dailyMovie;
+    }
+
+    // --- SEARCH ---
+    window.performSearch = async function() {
+        const query = document.getElementById('searchInput').value.trim();
+        if(!query) return;
+
+        const local = initialDB.filter(m => m.title.toLowerCase().includes(query.toLowerCase()));
+        if(local.length > 0) {
+            renderGrid(local);
+            return;
+        }
+
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-sec);">Ricerca nel database globale...</div>';
+
+        const prompt = `Utente cerca film/serie: "${query}". Rispondi SOLO JSON (senza markdown): {"title": "Titolo", "year": "Anno", "platform": "Piattaforma principale", "poster": "URL poster TMDB o vuoto"}`;
+        
+        const data = await askAI(prompt);
+        
+        if (data && data.candidates && data.candidates[0]) {
+            try {
+                // Pulizia extra per sicurezza se l'AI risponde con markdown
+                const text = data.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const newItem = JSON.parse(text);
+                newItem.id = Date.now();
+                currentDB = [newItem, ...initialDB];
+                renderGrid(currentDB);
+            } catch(e) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px;">Errore nella lettura dei dati.</div>';
+                console.error(e);
+            }
+        } else {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px;">Nessun risultato o errore server.</div>';
+            setTimeout(() => renderGrid(initialDB), 2000);
+        }
+    }
+
+    // --- MODAL ---
+    window.openModal = async function(item) {
+        document.getElementById('modalTitle').innerText = item.title;
+        document.getElementById('modalInfo').innerText = `${item.year} • ${item.platform}`;
+        document.getElementById('modalLink').href = `https://www.google.com/search?q=guarda+${encodeURIComponent(item.title)}+${item.platform}+streaming`;
+        
+        document.getElementById('aiReview').innerHTML = '<span class="spinner"></span> Il regista sta guardando il film...';
+        
+        modal.classList.add('open');
+
+        const prompt = `Analizza "${item.title}". Scrivi una recensione tecnica ma breve (max 30 parole) come se fossi un regista esperto.`;
+        const data = await askAI(prompt);
+        
+        if(data && data.candidates) {
+            document.getElementById('aiReview').innerText = data.candidates[0].content.parts[0].text;
+        } else {
+            document.getElementById('aiReview').innerText = "Recensione non disponibile al momento.";
+        }
+    }
+
+    window.closeModal = function() { modal.classList.remove('open'); }
+    window.openDaily = function() { if(window.dailyMovieData) openModal(window.dailyMovieData); }
+    window.scrollToTop = function() { window.scrollTo({top: 0, behavior: 'smooth'}); renderGrid(initialDB); }
+    window.imFeelingLucky = function() {
+        const random = currentDB[Math.floor(Math.random() * currentDB.length)];
+        openModal(random);
+    }
+
+    // --- GLOBAL EXPORTS ---
+    window.toggleTheme = toggleTheme;
+    window.performSearch = performSearch;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.openDaily = openDaily;
+    window.scrollToTop = scrollToTop;
+    window.imFeelingLucky = imFeelingLucky;
+
+    // Init
+    setupDailyPick();
+    renderGrid(initialDB);
+
+</script>
+</body>
+</html>
